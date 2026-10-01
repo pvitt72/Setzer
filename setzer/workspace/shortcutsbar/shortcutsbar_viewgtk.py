@@ -95,6 +95,22 @@ class Shortcutsbar(Gtk.Box):
         self.button_more.set_tooltip_text(_('Context Menu') + ' (F12)')
         self.right_icons.append(self.button_more)
 
+        self.button_forward_sync = Gtk.Button()
+        self.button_forward_sync.set_icon_name('go-next-symbolic')
+        self.button_forward_sync.set_tooltip_text(_('Show current position in preview') + ' (F7)')
+        self.button_forward_sync.get_style_context().add_class('flat')
+        self.button_forward_sync.get_style_context().add_class('scbar')
+        self.button_forward_sync.set_action_name('win.forward-sync')
+        self.right_icons.append(self.button_forward_sync)
+
+        self.button_backward_sync = Gtk.Button()
+        self.button_backward_sync.set_icon_name('go-previous-symbolic')
+        self.button_backward_sync.set_tooltip_text(_('Show source of current preview page') + ' (' + _('Shift') + '+F7)')
+        self.button_backward_sync.get_style_context().add_class('flat')
+        self.button_backward_sync.get_style_context().add_class('scbar')
+        self.button_backward_sync.set_action_name('win.backward-sync')
+        self.right_icons.append(self.button_backward_sync)
+
         self.button_build_log = Gtk.ToggleButton()
         self.button_build_log.set_icon_name('build-log-symbolic')
         self.button_build_log.set_tooltip_text(_('Build log') + ' (F8)')

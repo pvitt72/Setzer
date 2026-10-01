@@ -54,6 +54,7 @@ class Preview(Observable):
 
         self.visible_synctex_rectangles = list()
         self.visible_synctex_rectangles_time = None
+        self.pending_synctex_rectangles = None
 
         self.view = preview_view.PreviewView()
         self.layouter = preview_layouter.PreviewLayouter(self, self.view)
@@ -114,6 +115,7 @@ class Preview(Observable):
 
     def reset_pdf_data(self):
         self.pdf_filename = None
+        self.pending_synctex_rectangles = None
         self.poppler_document = None
         self.page_width = None
         self.page_height = None
@@ -128,6 +130,15 @@ class Preview(Observable):
 
         self.layout = self.layouter.create_layout()
         self.add_change_code('layout_changed')
+
+        if self.pending_synctex_rectangles != None:
+            rectangles = self.pending_synctex_rectangles
+            self.pending_synctex_rectangles = None
+            GLib.idle_add(self.apply_pending_synctex_rectangles, rectangles)
+
+    def apply_pending_synctex_rectangles(self, rectangles):
+        self.set_synctex_rectangles(rectangles)
+        return False
 
     def update_vertical_margin(self):
         current_min = self.page_width
@@ -163,7 +174,13 @@ class Preview(Observable):
         self.add_change_code('position_changed')
 
     def set_synctex_rectangles(self, rectangles):
-        if self.layout == None: return
+        # the layout is torn down whenever a new .pdf is loaded and only
+        # rebuilt on the next draw, so a sync result arriving right after a
+        # build would be lost. keep it around and apply it once there is a
+        # layout again.
+        if self.layout == None:
+            self.pending_synctex_rectangles = rectangles
+            return
 
         self.visible_synctex_rectangles = rectangles
         self.layouter.update_synctex_rectangles(self.layout)
@@ -184,6 +201,18 @@ class Preview(Observable):
 
             content.scroll_to_position([x, y])
             self.presenter.start_fade_loop()
+
+    def init_backward_sync_from_view(self):
+        # backward sync from the visible area instead of a click position, for
+        # the toolbar button and the keyboard shortcut. a point a bit below the
+        # top edge is what the user would consider "the page I am looking at".
+        if self.layout == None: return False
+        if self.poppler_document == None: return False
+
+        content = self.view.content
+        x_offset = content.scrolling_offset_x + content.width / 2
+        y_offset = content.scrolling_offset_y + content.height * 0.25
+        return self.init_backward_sync(x_offset, y_offset)
 
     def init_backward_sync(self, x_offset, y_offset):
         if self.layout == None: return False

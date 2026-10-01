@@ -122,6 +122,8 @@ class Shortcutsbar(object):
         root_or_active_latex = self.workspace.get_root_or_active_latex_document()
         self.view.button_build_log.set_active(self.workspace.get_show_build_log())
         self.view.button_build_log.set_visible(root_or_active_latex)
+        self.view.button_forward_sync.set_visible(root_or_active_latex)
+        self.view.button_backward_sync.set_visible(root_or_active_latex)
 
     def on_build_log_button_clicked(self, toggle_button, parameter=None):
         self.workspace.set_show_build_log(toggle_button.get_active())

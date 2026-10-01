@@ -1,4 +1,4 @@
-# generated on lun 3 ago 2026, 13:45:37, UTC
+# generated on gio 1 ott 2026, 13:56:31, UTC
 
 ./data/org.cvfosammmm.Setzer.metainfo.xml.in
 
@@ -188,6 +188,8 @@
 ./setzer/widgets/search_entry/search_entry.py
 ./setzer/workspace/actions/actions.py
 ./setzer/workspace/actions/__init__.py
+./setzer/workspace/auto_sync/auto_sync.py
+./setzer/workspace/auto_sync/__init__.py
 ./setzer/workspace/build_log/build_log_controller.py
 ./setzer/workspace/build_log/build_log_presenter.py
 ./setzer/workspace/build_log/build_log.py

@@ -70,9 +70,18 @@ class BuildSystem(Observable):
         self.builders['forward_sync'] = builder_forward_sync.BuilderForwardSync()
         self.builders['backward_sync'] = builder_backward_sync.BuilderBackwardSync()
 
+        # automatic syncing runs on its own query slot, so that it neither
+        # cancels a build in progress nor touches the build state (which would
+        # flash the build spinner on every keystroke). its builder is created
+        # per query, because a replaced sync keeps running until its synctex
+        # process dies and must not write into the builder of the next one.
+        self.active_sync_query = None
+        self.active_sync_builder = None
+
         self.document.preview.connect('pdf_changed', self.update_can_sync)
 
         GObject.timeout_add(50, self.results_loop)
+        GObject.timeout_add(50, self.sync_results_loop)
 
     def change_build_state(self, state):
         self.build_state = state
@@ -130,11 +139,53 @@ class BuildSystem(Observable):
         self.start_building()
 
     def set_forward_sync_arguments(self, active_document):
+        self.forward_sync_arguments = self.get_forward_sync_arguments(active_document)
+
+    def get_forward_sync_arguments(self, active_document):
         sb = active_document.source_buffer
-        self.forward_sync_arguments = dict()
-        self.forward_sync_arguments['filename'] = active_document.get_filename()
-        self.forward_sync_arguments['line'] = sb.get_iter_at_mark(sb.get_insert()).get_line() + 1
-        self.forward_sync_arguments['line_offset'] = sb.get_iter_at_mark(sb.get_insert()).get_line_offset() + 1
+        arguments = dict()
+        arguments['filename'] = active_document.get_filename()
+        arguments['line'] = sb.get_iter_at_mark(sb.get_insert()).get_line() + 1
+        arguments['line_offset'] = sb.get_iter_at_mark(sb.get_insert()).get_line_offset() + 1
+        return arguments
+
+    def forward_sync_quiet(self, active_document):
+        if not self.can_sync: return
+        if self.document.filename == None: return
+        if active_document.get_filename() == None: return
+
+        self.stop_sync()
+
+        arguments = self.get_forward_sync_arguments(active_document)
+        query_obj = query.Query(self.document.get_filename()[:])
+        query_obj.can_sync = True
+        query_obj.forward_sync_data['filename'] = arguments['filename']
+        query_obj.forward_sync_data['line'] = arguments['line']
+        query_obj.forward_sync_data['line_offset'] = arguments['line_offset']
+
+        self.active_sync_query = query_obj
+        self.active_sync_builder = builder_forward_sync.BuilderForwardSync()
+        thread.start_new_thread(self.execute_sync_query, (query_obj, self.active_sync_builder))
+
+    def stop_sync(self):
+        if self.active_sync_builder != None:
+            self.active_sync_builder.stop_running()
+        self.active_sync_query = None
+        self.active_sync_builder = None
+
+    def execute_sync_query(self, query_obj, builder):
+        builder.run(query_obj)
+        query_obj.mark_done()
+
+    def sync_results_loop(self):
+        if self.active_sync_query != None:
+            if self.active_sync_query.is_done():
+                forward_sync_result = self.active_sync_query.get_forward_sync_result()
+                self.active_sync_query = None
+                self.active_sync_builder = None
+                if forward_sync_result != None:
+                    self.document.preview.set_synctex_rectangles(forward_sync_result)
+        return True
 
     def set_build_log_items(self, log_items):
         build_log_items = list()
@@ -244,6 +295,7 @@ class BuildSystem(Observable):
 
     def add_query(self, query):
         self.stop_building(notify=False)
+        self.stop_sync()
         self.active_query = query
         thread.start_new_thread(self.execute_query, (query,))
 

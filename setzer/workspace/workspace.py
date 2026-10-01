@@ -28,6 +28,7 @@ from setzer.helpers.observable import Observable
 import setzer.workspace.workspace_presenter as workspace_presenter
 import setzer.workspace.workspace_controller as workspace_controller
 import setzer.workspace.preview_panel.preview_panel as preview_panel
+import setzer.workspace.auto_sync.auto_sync as auto_sync
 import setzer.workspace.help_panel.help_panel as help_panel
 import setzer.workspace.welcome_screen.welcome_screen as welcome_screen
 import setzer.workspace.headerbar.headerbar as headerbar
@@ -77,6 +78,7 @@ class Workspace(Observable):
         self.help_panel = help_panel.HelpPanel(self)
         self.build_log = build_log.BuildLog(self)
         self.controller = workspace_controller.WorkspaceController(self)
+        self.auto_sync = auto_sync.AutoSync(self)
 
     def open_document_by_filename(self, filename):
         if filename == None: return None

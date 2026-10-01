@@ -58,6 +58,7 @@ class ShortcutControllerApp(ShortcutController):
         self.create_and_add_shortcut('F5', self.actions.save_and_build)
         self.create_and_add_shortcut('F6', self.actions.build)
         self.create_and_add_shortcut('F7', self.actions.forward_sync)
+        self.create_and_add_shortcut('<Shift>F7', self.actions.backward_sync)
         self.create_and_add_shortcut('F8', self.shortcut_build_log)
         self.create_and_add_shortcut('F9', self.shortcut_preview)
         self.create_and_add_shortcut('F10', self.shortcut_show_hamburger)

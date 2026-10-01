@@ -36,6 +36,9 @@ class PageBuildSystem(object):
         self.view.option_cleanup_build_files.set_active(self.settings.get_value('preferences', 'cleanup_build_files'))
         self.view.option_cleanup_build_files.connect('toggled', self.preferences.on_check_button_toggle, 'cleanup_build_files')
 
+        self.view.option_auto_forward_sync.set_active(self.settings.get_value('preferences', 'auto_forward_sync'))
+        self.view.option_auto_forward_sync.connect('toggled', self.preferences.on_check_button_toggle, 'auto_forward_sync')
+
         self.view.option_autoshow_build_log_errors.set_active(self.settings.get_value('preferences', 'autoshow_build_log') == 'errors')
         self.view.option_autoshow_build_log_errors_warnings.set_active(self.settings.get_value('preferences', 'autoshow_build_log') == 'errors_warnings')
         self.view.option_autoshow_build_log_all.set_active(self.settings.get_value('preferences', 'autoshow_build_log') == 'all')
@@ -187,6 +190,17 @@ flatpak install org.freedesktop.Sdk.Extension.texlive'''))
 
         self.option_use_latexmk = Gtk.CheckButton.new_with_label(_('Use Latexmk'))
         self.append(self.option_use_latexmk)
+
+        self.option_auto_forward_sync = Gtk.CheckButton.new_with_label(_('Scroll the preview to the cursor position while editing.'))
+        self.append(self.option_auto_forward_sync)
+
+        label = Gtk.Label()
+        label.set_wrap(True)
+        label.set_markup(_('This needs a .synctex.gz file, which is created when building the document.'))
+        label.set_xalign(0)
+        label.set_margin_start(28)
+        label.get_style_context().add_class('description')
+        self.append(label)
 
         label = Gtk.Label()
         label.set_markup('<b>' + _('Automatically show build log ..') + ' </b>')

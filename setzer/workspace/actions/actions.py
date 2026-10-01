@@ -58,6 +58,7 @@ class Actions(object):
         self.add_action('add-remove-packages-dialog', self.start_add_remove_packages_dialog, None)
         self.add_action('toggle-comment', self.toggle_comment)
         self.add_action('forward-sync', self.forward_sync)
+        self.add_action('backward-sync', self.backward_sync)
 
         self.add_action('spelling-correct', self.spelling_correct, GLib.VariantType('s'))
         self.add_action('spelling-add-to-dictionary', self.spelling_add_to_dictionary)
@@ -183,6 +184,7 @@ class Actions(object):
         self.actions['add-remove-packages-dialog'].set_enabled(document_active_is_latex)
         self.actions['toggle-comment'].set_enabled(document_active_is_latex)
         self.actions['forward-sync'].set_enabled(can_sync)
+        self.actions['backward-sync'].set_enabled(can_sync)
         self.actions['build'].set_enabled(can_build)
         self.actions['save-and-build'].set_enabled(can_build)
         self.actions['show-build-log'].set_enabled(document_active_is_latex)
@@ -239,6 +241,17 @@ class Actions(object):
         if not sync_document.build_system.can_sync: return
 
         sync_document.build_system.forward_sync(active_document)
+
+    def backward_sync(self, action=None, parameter=''):
+        active_document = self.workspace.get_active_document()
+        if active_document == None: return
+
+        if self.workspace.root_document != None: sync_document = self.workspace.root_document
+        else: sync_document = active_document
+        if not sync_document.is_latex_document(): return
+        if not sync_document.build_system.can_sync: return
+
+        sync_document.preview.init_backward_sync_from_view()
 
     def show_build_log(self, action=None, parameter=''):
         self.workspace.set_show_build_log(True)

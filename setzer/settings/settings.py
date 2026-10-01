@@ -87,6 +87,7 @@ class Settings(Observable):
         self.defaults['preferences']['bracket_selection'] = True
         self.defaults['preferences']['tab_jump_brackets'] = True
         self.defaults['preferences']['update_matching_blocks'] = True
+        self.defaults['preferences']['auto_forward_sync'] = False
         self.defaults['preferences']['inline_spellchecking'] = False
         self.defaults['preferences']['spellchecking_language_code'] = None
 
